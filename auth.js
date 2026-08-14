@@ -3,6 +3,10 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  setPersistence,
+  browserLocalPersistence,
   onAuthStateChanged,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -19,6 +23,34 @@ const app = initializeApp({
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: "select_account" });
+
+function browserInfo() {
+  const ua = navigator.userAgent || "";
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isLine = /Line\//i.test(ua);
+  const isFB = /FBAN|FBAV|FB_IAB/i.test(ua);
+  const isIG = /Instagram/i.test(ua);
+  const isInApp = isLine || isFB || isIG || /; wv\)/i.test(ua);
+  const isMobile = isAndroid || isIOS || /Mobile/i.test(ua);
+  return { isAndroid, isIOS, isLine, isInApp, isMobile };
+}
+
+function openInChrome() {
+  const hostPath = location.host + location.pathname + location.search + location.hash;
+  const full = location.href;
+  if (/Android/i.test(navigator.userAgent)) {
+    location.href =
+      "intent://" +
+      hostPath +
+      "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" +
+      encodeURIComponent(full) +
+      ";end";
+    return;
+  }
+  location.href = "googlechrome://" + hostPath;
+}
 
 function injectStyle() {
   if (document.getElementById("bb-auth-style")) return;
@@ -49,18 +81,19 @@ function injectStyle() {
       letter-spacing: .08em;
       text-transform: uppercase;
     }
-    #bb-google-login {
+    #bb-google-login, #bb-open-chrome {
       width: 100%;
       border: 0;
       border-radius: 10px;
-      background: #fff;
-      color: #111;
       font-weight: 700;
       font-size: 16px;
       padding: 12px 14px;
       cursor: pointer;
     }
+    #bb-google-login { background: #fff; color: #111; }
+    #bb-open-chrome { background: #3dd6c6; color: #06221f; margin-bottom: 10px; }
     .bb-gate-error { color: #ff6b6b; margin-top: 14px; font-size: 14px; min-height: 1.2em; }
+    .bb-gate-hint { color: #93a0ae; margin-top: 12px; font-size: 14px; }
     #bb-userbar {
       display: none;
       justify-content: flex-end;
@@ -85,6 +118,46 @@ function injectStyle() {
   document.head.appendChild(style);
 }
 
+function setError(text) {
+  const err = document.getElementById("bb-auth-error");
+  if (err) err.textContent = text || "";
+}
+
+async function startLogin() {
+  setError("");
+  const { isMobile, isInApp } = browserInfo();
+  if (isInApp) {
+    openInChrome();
+    return;
+  }
+  try {
+    if (isMobile) {
+      await signInWithRedirect(auth, provider);
+      return;
+    }
+    await signInWithPopup(auth, provider);
+  } catch (e) {
+    if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
+      try {
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (e2) {
+        setError(humanError(e2));
+        return;
+      }
+    }
+    setError(humanError(e));
+  }
+}
+
+function humanError(e) {
+  const code = e && e.code;
+  if (code === "auth/unauthorized-domain") return "โดเมนนี้ยังไม่ได้รับอนุญาตใน Firebase";
+  if (code === "auth/popup-blocked") return "เบราว์เซอร์บล็อกหน้าต่างล็อกอิน";
+  if (code === "auth/network-request-failed") return "เน็ตหลุด ลองใหม่อีกครั้ง";
+  return (e && e.message) || "เข้าสู่ระบบไม่สำเร็จ";
+}
+
 function showGate(errorText) {
   injectStyle();
   document.body.classList.add("bb-locked");
@@ -95,24 +168,27 @@ function showGate(errorText) {
     gate.id = "bb-gate";
     document.body.prepend(gate);
   }
+
+  const { isInApp, isLine } = browserInfo();
+  const extra = isInApp
+    ? `<button type="button" id="bb-open-chrome">เปิดใน Chrome แล้วล็อกอิน</button>
+       <p class="bb-gate-hint">${isLine ? "เบราว์เซอร์ใน LINE ล็อกอิน Google ไม่ได้" : "เบราว์เซอร์ในแอป"} ต้องเปิดด้วย Chrome</p>`
+    : `<button type="button" id="bb-google-login">เข้าสู่ระบบด้วย Google</button>`;
+
   gate.innerHTML = `
     <div class="bb-gate-card">
       <div class="bb-gate-kicker">private page</div>
       <h1>เข้าสู่ระบบด้วย Google</h1>
       <p>อนุญาตเฉพาะ bigbenmaths@gmail.com</p>
-      <button type="button" id="bb-google-login">เข้าสู่ระบบด้วย Google</button>
+      ${extra}
       <div class="bb-gate-error" id="bb-auth-error">${errorText || ""}</div>
     </div>
   `;
-  document.getElementById("bb-google-login").onclick = async () => {
-    const err = document.getElementById("bb-auth-error");
-    err.textContent = "";
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (e) {
-      err.textContent = e.message || "เข้าสู่ระบบไม่สำเร็จ";
-    }
-  };
+
+  const chromeBtn = document.getElementById("bb-open-chrome");
+  if (chromeBtn) chromeBtn.onclick = openInChrome;
+  const loginBtn = document.getElementById("bb-google-login");
+  if (loginBtn) loginBtn.onclick = startLogin;
 }
 
 function showApp(email) {
@@ -131,6 +207,15 @@ function showApp(email) {
 }
 
 injectStyle();
+
+await setPersistence(auth, browserLocalPersistence);
+
+try {
+  await getRedirectResult(auth);
+} catch (e) {
+  showGate(humanError(e));
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     showGate("");
