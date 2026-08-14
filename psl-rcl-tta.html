@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PSL + RCL + TTA — ต่ำสุด-สูงสุดรายปี</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #171d24;
+      --panel-2: #1d252e;
+      --line: #2a3440;
+      --text: #e8eef4;
+      --muted: #93a0ae;
+      --soft: #c5d0db;
+      --accent: #3dd6c6;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Sarabun", "IBM Plex Sans Thai", "Noto Sans Thai", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(61, 214, 198, 0.08), transparent 50%),
+        radial-gradient(900px 400px at 100% 0%, rgba(122, 168, 255, 0.08), transparent 45%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: #7fe7dc; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 18px 80px; }
+
+    header.hero {
+      padding: 28px 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1 { margin: 8px 0 10px; font-size: 32px; line-height: 1.25; }
+    h2 { margin: 0 0 12px; font-size: 22px; }
+    p { margin: 0 0 12px; color: var(--soft); }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #141b22;
+    }
+
+    td.num, th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    tr.now td { background: rgba(61, 214, 198, 0.08); }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    body.bb-locked .bb-app { display: none !important; }
+
+    @media (max-width: 800px) {
+      h1 { font-size: 26px; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body class="bb-locked">
+  <div class="wrap bb-app">
+    <header class="hero">
+      <div class="eyebrow"><a href="/" style="color:inherit;text-decoration:none">← หน้าแรก</a></div>
+      <h1>PSL RCL TTA<br />ราคาต่ำสุด–สูงสุดรายปี</h1>
+      <p>
+        ตารางที่ตรวจแล้วจากราคาสูงสุด–ต่ำสุดรายวัน
+        ข้อมูลถึงวันที่ 14 ส.ค. 2569
+      </p>
+      <div class="meta">
+        <span class="chip">แหล่งราคา: Yahoo Finance PSL.BK / RCL.BK / TTA.BK</span>
+        <span class="chip">ใช้ high/low รายวัน ไม่ใช้แค่ราคาปิด</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>PSL</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">7.20</td>
+              <td>13 พ.ย. 2023</td>
+              <td class="num">16.80</td>
+              <td>1 ก.พ. 2023</td>
+              <td>High ของรอบ 4 ปี อยู่ต้นปีนี้</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">6.70</td>
+              <td>20 ธ.ค. 2024</td>
+              <td class="num">10.80</td>
+              <td>4 มิ.ย. 2024</td>
+              <td>ปิดสิ้นปี 6.75 เกือบเท่าต่ำสุด</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">4.96</td>
+              <td>8 เม.ย. 2025</td>
+              <td class="num">7.50</td>
+              <td>16 ต.ค. 2025</td>
+              <td>จุดต่ำสุดของรอบ 4 ปี</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">5.70</td>
+              <td>13 ม.ค. 2026</td>
+              <td class="num">10.20</td>
+              <td>11 ส.ค. 2026</td>
+              <td>ปิดวันนี้ 10.00 ยังต่ำกว่า High ปี 2023</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>RCL</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">18.50</td>
+              <td>27 ต.ค. 2023</td>
+              <td class="num">33.00</td>
+              <td>10 มี.ค. 2023</td>
+              <td>High ปีนี้ยังต่ำกว่าปี 2026</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">17.10</td>
+              <td>5 เม.ย. 2024</td>
+              <td class="num">31.75</td>
+              <td>11 มิ.ย. 2024</td>
+              <td>จุดต่ำสุดของรอบ 4 ปี</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">18.20</td>
+              <td>8 เม.ย. 2025</td>
+              <td class="num">31.75</td>
+              <td>8 ส.ค. 2025</td>
+              <td>High เท่ากับปี 2024</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">27.00</td>
+              <td>5 ม.ค. 2026</td>
+              <td class="num">41.00</td>
+              <td>14 ส.ค. 2026</td>
+              <td>ทำ High ใหม่ของรอบ 4 ปี ปิดวันนี้ 40.75</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>TTA</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">4.74</td>
+              <td>23 พ.ย. 2023</td>
+              <td class="num">8.45</td>
+              <td>10 ม.ค. 2023</td>
+              <td>High ของรอบ 4 ปี อยู่ต้นปีนี้</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">4.90</td>
+              <td>23 ธ.ค. 2024</td>
+              <td class="num">8.45</td>
+              <td>4 มิ.ย. 2024</td>
+              <td>High เท่ากับปี 2023</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">3.22</td>
+              <td>9 เม.ย. 2025</td>
+              <td class="num">5.35</td>
+              <td>6 ม.ค. 2025</td>
+              <td>จุดต่ำสุดของรอบ 4 ปี</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">3.94</td>
+              <td>15 ม.ค. 2026</td>
+              <td class="num">5.90</td>
+              <td>11 ส.ค. 2026</td>
+              <td>ปิดวันนี้ 5.55 ยังต่ำกว่า High ปี 2023–2024</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        ตัวเลขนี้เป็น high/low รายวัน จึงอาจต่างจาก tick ระหว่างวันของโบรกเล็กน้อย
+        ทั้งสามตัวไม่มีหุ้นปันผลแยกหุ้นในช่วงนี้
+      </p>
+    </section>
+  </div>
+  <script type="module" src="/auth.js"></script>
+</body>
+</html>
