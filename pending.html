@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>คำขอเข้าใช้งาน</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #171d24;
+      --line: #2a3440;
+      --text: #e8eef4;
+      --muted: #93a0ae;
+      --soft: #c5d0db;
+      --accent: #3dd6c6;
+      --good: #5bd38a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Sarabun", "IBM Plex Sans Thai", "Noto Sans Thai", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 800px; margin: 0 auto; padding: 24px 18px 80px; }
+    h1 { margin: 8px 0 12px; font-size: 28px; }
+    p { color: var(--soft); }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin: 12px 0;
+    }
+    .name { font-size: 18px; font-weight: 700; }
+    .meta { color: var(--muted); font-size: 13px; margin-top: 6px; word-break: break-all; }
+    button.ok {
+      margin-top: 10px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--good);
+      color: #06221f;
+      font-weight: 700;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .empty { color: var(--muted); }
+    body.bb-locked .bb-app { display: none !important; }
+  </style>
+</head>
+<body class="bb-locked">
+  <div class="wrap bb-app">
+    <a href="/">← หน้าแรก</a>
+    <h1>คำขอเข้าใช้งาน</h1>
+    <p>คนใหม่แค่ลองล็อกอิน แล้วชื่อจะโผล่ที่นี่ กดอนุมัติได้เลย</p>
+    <div id="list" class="empty">กำลังโหลด...</div>
+  </div>
+  <script type="module" src="/auth.js?v=20260814e"></script>
+  <script type="module">
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      setDoc,
+      deleteDoc,
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const OWNER_UID = "saLW92gjCYfmzaScQYUnoym1ZHf2";
+    const OWNER_EMAIL = "bigbenmaths@gmail.com";
+
+    function db() {
+      return getFirestore(getApp());
+    }
+
+    function isOwner(user) {
+      return user.uid === OWNER_UID || String(user.email || "").toLowerCase() === OWNER_EMAIL;
+    }
+
+    async function approve(item) {
+      const firestore = db();
+      const payload = {
+        uid: item.uid,
+        lineUid: item.lineUid || "",
+        name: item.name || "",
+        email: item.email || "",
+        approvedAt: Date.now(),
+      };
+      await setDoc(doc(firestore, "bb_pages_allowed", item.uid), payload);
+      if (item.lineUid) {
+        await setDoc(doc(firestore, "bb_pages_allowed", item.lineUid), payload);
+      }
+      await deleteDoc(doc(firestore, "bb_pages_requests", item.uid));
+      await load();
+    }
+
+    function text(el, value) {
+      el.textContent = value;
+      return el;
+    }
+
+    async function load() {
+      const box = document.getElementById("list");
+      box.textContent = "กำลังโหลด...";
+      const snap = await getDocs(collection(db(), "bb_pages_requests"));
+      const rows = snap.docs
+        .map((d) => d.data())
+        .sort((a, b) => (b.at || 0) - (a.at || 0));
+      if (!rows.length) {
+        box.innerHTML = '<p class="empty">ยังไม่มีคำขอใหม่</p>';
+        return;
+      }
+      box.innerHTML = "";
+      for (const item of rows) {
+        const when = item.at ? new Date(item.at).toLocaleString("th-TH") : "";
+        const el = document.createElement("div");
+        el.className = "card";
+        const name = document.createElement("div");
+        name.className = "name";
+        text(name, item.name || "(ไม่มีชื่อ)");
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        text(meta, `${when}\nLINE: ${item.lineUid || "-"}\nUID: ${item.uid || "-"}`);
+        meta.style.whiteSpace = "pre-wrap";
+        el.appendChild(name);
+        el.appendChild(meta);
+        const btn = document.createElement("button");
+        btn.className = "ok";
+        btn.textContent = "อนุมัติ";
+        btn.onclick = () => approve(item);
+        el.appendChild(btn);
+        box.appendChild(el);
+      }
+    }
+
+    function start(user) {
+      if (!isOwner(user)) {
+        document.getElementById("list").textContent = "หน้านี้ใช้ได้เฉพาะเจ้าของเว็บ";
+        return;
+      }
+      load();
+    }
+
+    if (window.bbCurrentUser) start(window.bbCurrentUser);
+    window.addEventListener("bb-authed", (e) => start(e.detail));
+  </script>
+</body>
+</html>

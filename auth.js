@@ -12,6 +12,13 @@ import {
   onAuthStateChanged,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ALLOWED_EMAILS = ["bigbenmaths@gmail.com"];
 const ALLOWED_LINE_UIDS = [
@@ -19,6 +26,8 @@ const ALLOWED_LINE_UIDS = [
   "saLW92gjCYfmzaScQYUnoym1ZHf2",
 ];
 const PENDING_KEY = "bb_pending_line";
+const REQUESTED_KEY = "bb_access_requested";
+const REQUESTED_MSG = "ส่งคำขอเข้าใช้งานแล้ว บอกเจ้าของได้เลยว่าลองล็อกอินแล้ว ไม่ต้องก็อปรหัส";
 
 const app = initializeApp({
   apiKey: "AIzaSyBhDUiQDYOOdoNoUZ5E-hrJb8B2mvWqdcc",
@@ -32,6 +41,7 @@ const auth = initializeAuth(app, {
   persistence: [indexedDBLocalPersistence, browserLocalPersistence],
   popupRedirectResolver: browserPopupRedirectResolver,
 });
+const db = getFirestore(app);
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
@@ -68,7 +78,7 @@ function identityDump(user) {
   };
 }
 
-function isAllowed(user) {
+function hardcodedAllowed(user) {
   const emails = [
     user.email,
     ...(user.providerData || []).map((p) => p.email),
@@ -85,6 +95,31 @@ function isAllowed(user) {
     .filter(Boolean)
     .map((item) => String(item).trim());
   return ids.some((item) => ALLOWED_LINE_UIDS.includes(item));
+}
+
+async function isAllowed(user) {
+  if (hardcodedAllowed(user)) return true;
+  const keys = [user.uid, lineUidOf(user)].filter(Boolean);
+  for (const key of keys) {
+    try {
+      const snap = await getDoc(doc(db, "bb_pages_allowed", key));
+      if (snap.exists()) return true;
+    } catch (_) {}
+  }
+  return false;
+}
+
+async function saveAccessRequest(user) {
+  const info = identityDump(user);
+  await setDoc(doc(db, "bb_pages_requests", user.uid), {
+    uid: info.uid,
+    lineUid: info.lineUid || "",
+    name: info.name || "",
+    email: info.email || "",
+    at: Date.now(),
+    createdAt: serverTimestamp(),
+    status: "pending",
+  });
 }
 
 function injectStyle() {
@@ -206,12 +241,7 @@ async function startLineLogin() {
   }
 }
 
-function pendingBox(info) {
-  if (!info) return "";
-  return `<div class="bb-line-id">LINE ID: ${info.lineUid || "-"}<br>UID: ${info.uid || "-"}<br>ชื่อ: ${info.name || "-"}</div>`;
-}
-
-function showGate(errorText, extraHtml = "") {
+function showGate(errorText) {
   injectStyle();
   document.body.classList.add("bb-locked");
   document.body.classList.remove("bb-open");
@@ -220,14 +250,6 @@ function showGate(errorText, extraHtml = "") {
     gate = document.createElement("div");
     gate.id = "bb-gate";
     document.body.prepend(gate);
-  }
-
-  let pendingHtml = extraHtml;
-  if (!pendingHtml) {
-    try {
-      const saved = sessionStorage.getItem(PENDING_KEY);
-      if (saved) pendingHtml = pendingBox(JSON.parse(saved));
-    } catch (_) {}
   }
 
   const { isLine } = browserInfo();
@@ -244,7 +266,6 @@ function showGate(errorText, extraHtml = "") {
       <button type="button" id="bb-google-login">เข้าสู่ระบบด้วย Google</button>
       <p class="bb-gate-hint">${hint}</p>
       <div class="bb-gate-error" id="bb-auth-error">${errorText || ""}</div>
-      ${pendingHtml}
     </div>
   `;
 
@@ -267,6 +288,8 @@ function showApp(user) {
   const label = user.email || user.displayName || lineUidOf(user) || "เข้าสู่ระบบแล้ว";
   bar.innerHTML = `<span>${label}</span><button type="button" id="bb-logout">ออกจากระบบ</button>`;
   document.getElementById("bb-logout").onclick = () => signOut(auth);
+  window.bbCurrentUser = user;
+  window.dispatchEvent(new CustomEvent("bb-authed", { detail: user }));
 }
 
 injectStyle();
@@ -281,20 +304,24 @@ try {
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     try { sessionStorage.removeItem(PENDING_KEY); } catch (_) {}
-    showGate("");
+    let requested = "";
+    try { requested = sessionStorage.getItem(REQUESTED_KEY) || ""; } catch (_) {}
+    showGate(requested);
     return;
   }
 
-  if (isAllowed(user)) {
+  if (await isAllowed(user)) {
+    try { sessionStorage.removeItem(REQUESTED_KEY); } catch (_) {}
     showApp(user);
     return;
   }
 
-  const info = identityDump(user);
-  try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(info)); } catch (_) {}
+  try {
+    await saveAccessRequest(user);
+    try { sessionStorage.setItem(REQUESTED_KEY, REQUESTED_MSG); } catch (_) {}
+  } catch (e) {
+    console.error(e);
+    try { sessionStorage.setItem(REQUESTED_KEY, "ส่งคำขอไม่สำเร็จ ลองล็อกอินอีกครั้ง"); } catch (_) {}
+  }
   await signOut(auth);
-  showGate(
-    "ล็อกอินไลน์สำเร็จ แต่ยังไม่ได้ใส่บัญชีนี้ในไวท์ลิสต์ ส่งข้อความด้านล่างกลับมาได้เลย",
-    pendingBox(info)
-  );
 });
