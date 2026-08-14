@@ -97,16 +97,20 @@ function hardcodedAllowed(user) {
   return ids.some((item) => ALLOWED_LINE_UIDS.includes(item));
 }
 
-async function isAllowed(user) {
-  if (hardcodedAllowed(user)) return true;
+async function accessState(user) {
+  if (hardcodedAllowed(user)) return "allowed";
   const keys = [user.uid, lineUidOf(user)].filter(Boolean);
+  let paused = false;
   for (const key of keys) {
     try {
       const snap = await getDoc(doc(db, "bb_pages_allowed", key));
-      if (snap.exists()) return true;
+      if (!snap.exists()) continue;
+      const status = String(snap.data()?.status || "active");
+      if (status === "paused") paused = true;
+      else return "allowed";
     } catch (_) {}
   }
-  return false;
+  return paused ? "paused" : "denied";
 }
 
 async function saveAccessRequest(user) {
@@ -310,9 +314,16 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  if (await isAllowed(user)) {
+  const state = await accessState(user);
+  if (state === "allowed") {
     try { sessionStorage.removeItem(REQUESTED_KEY); } catch (_) {}
     showApp(user);
+    return;
+  }
+
+  if (state === "paused") {
+    try { sessionStorage.setItem(REQUESTED_KEY, "บัญชีนี้ถูกหยุดชั่วคราว"); } catch (_) {}
+    await signOut(auth);
     return;
   }
 

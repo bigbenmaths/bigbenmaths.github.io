@@ -15,6 +15,7 @@
       --accent: #3dd6c6;
       --good: #5bd38a;
       --bad: #ff6b6b;
+      --warn: #f0c36a;
     }
     * { box-sizing: border-box; }
     body {
@@ -45,7 +46,9 @@
       font-weight: 700;
       color: var(--accent);
     }
-    button.ok, button.bad, button.ghost {
+    .tag.warn { color: var(--warn); }
+    .card.paused { border-color: rgba(240, 195, 106, 0.45); }
+    button.ok, button.bad, button.warn, button.ghost {
       margin-top: 10px;
       margin-right: 8px;
       border: 0;
@@ -55,6 +58,7 @@
       cursor: pointer;
     }
     button.ok { background: var(--good); color: #06221f; }
+    button.warn { background: var(--warn); color: #2a2106; }
     button.bad { background: var(--bad); color: #2a0606; }
     button.ghost {
       background: transparent;
@@ -79,10 +83,10 @@
     <div id="requests" class="empty">กำลังโหลด...</div>
 
     <h2>ไวท์ลิสต์</h2>
-    <p>คนที่เข้าเว็บได้แล้ว ลบออกได้ ยกเว้นบัญชีถาวร</p>
+    <p>หยุดชั่วคราวแล้วเปิดใหม่ได้ ยกเลิกคือลบออกจากไวท์ลิสต์ ยกเว้นบัญชีถาวร</p>
     <div id="allowed" class="empty">กำลังโหลด...</div>
   </div>
-  <script type="module" src="/auth.js?v=20260814g"></script>
+  <script type="module" src="/auth.js?v=20260814h"></script>
   <script type="module">
     import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -141,28 +145,54 @@
       return btn;
     }
 
-    async function approve(item) {
-      const firestore = db();
-      const payload = {
-        uid: item.uid,
+    function allowedKeys(item) {
+      return [...new Set([item.uid, item.lineUid, ...(item.docIds || [])].filter(Boolean))];
+    }
+
+    function allowedPayload(item, status) {
+      return {
+        uid: item.uid || "",
         lineUid: item.lineUid || "",
         name: item.name || "",
         email: item.email || "",
-        approvedAt: Date.now(),
+        approvedAt: item.approvedAt || Date.now(),
+        status,
+        updatedAt: Date.now(),
       };
-      await setDoc(doc(firestore, "bb_pages_allowed", item.uid), payload);
-      if (item.lineUid) {
-        await setDoc(doc(firestore, "bb_pages_allowed", item.lineUid), payload);
-      }
-      await deleteDoc(doc(firestore, "bb_pages_requests", item.uid));
+    }
+
+    async function writeAllowed(item, status) {
+      const firestore = db();
+      const payload = allowedPayload(item, status);
+      const keys = allowedKeys(item);
+      if (item.uid && !keys.includes(item.uid)) keys.push(item.uid);
+      if (item.lineUid && !keys.includes(item.lineUid)) keys.push(item.lineUid);
+      await Promise.all(keys.map((key) => setDoc(doc(firestore, "bb_pages_allowed", key), payload)));
+    }
+
+    async function approve(item) {
+      await writeAllowed(item, "active");
+      await deleteDoc(doc(db(), "bb_pages_requests", item.uid));
       await load();
     }
 
-    async function revoke(item) {
-      if (!confirm(`ลบ ${item.name || item.email || item.uid} ออกจากไวท์ลิสต์?`)) return;
+    async function pause(item) {
+      const label = item.name || item.email || item.uid;
+      if (!confirm(`หยุดชั่วคราว ${label}? เข้าเว็บไม่ได้จนกว่าจะเปิดใช้ต่อ`)) return;
+      await writeAllowed({ ...item, approvedAt: item.approvedAt || Date.now() }, "paused");
+      await load();
+    }
+
+    async function resume(item) {
+      await writeAllowed({ ...item, approvedAt: item.approvedAt || Date.now() }, "active");
+      await load();
+    }
+
+    async function cancel(item) {
+      const label = item.name || item.email || item.uid;
+      if (!confirm(`ยกเลิก ${label} ออกจากไวท์ลิสต์?`)) return;
       const firestore = db();
-      const keys = [...new Set([item.uid, item.lineUid, ...(item.docIds || [])].filter(Boolean))];
-      await Promise.all(keys.map((key) => deleteDoc(doc(firestore, "bb_pages_allowed", key))));
+      await Promise.all(allowedKeys(item).map((key) => deleteDoc(doc(firestore, "bb_pages_allowed", key))));
       await load();
     }
 
@@ -209,6 +239,7 @@
             name: data.name || "",
             email: data.email || "",
             approvedAt: data.approvedAt || 0,
+            status: data.status || "active",
             docIds: [d.id],
           });
         } else {
@@ -219,6 +250,7 @@
           row.name = row.name || data.name || "";
           row.email = row.email || data.email || "";
           row.approvedAt = row.approvedAt || data.approvedAt || 0;
+          if (data.status === "paused") row.status = "paused";
         }
       }
 
@@ -254,17 +286,36 @@
       }
 
       for (const item of rows) {
+        const paused = item.status === "paused";
         const when = item.approvedAt ? new Date(item.approvedAt).toLocaleString("th-TH") : "";
-        box.appendChild(card(
+        const actions = paused
+          ? [
+              button("เปิดใช้ต่อ", "ok", () => resume(item)),
+              button("ยกเลิก", "bad", () => cancel(item)),
+            ]
+          : [
+              button("หยุดชั่วคราว", "warn", () => pause(item)),
+              button("ยกเลิก", "bad", () => cancel(item)),
+            ];
+        const el = card(
           item,
           [
+            paused ? "สถานะ: หยุดชั่วคราว" : "สถานะ: ใช้งานได้",
             when && `อนุมัติ: ${when}`,
             item.email && `อีเมล: ${item.email}`,
             `LINE: ${item.lineUid || "-"}`,
             `UID: ${item.uid || "-"}`,
           ],
-          [button("ลบออกจากไวท์ลิสต์", "bad", () => revoke(item))]
-        ));
+          actions
+        );
+        if (paused) {
+          el.classList.add("paused");
+          const tag = document.createElement("div");
+          tag.className = "tag warn";
+          tag.textContent = "หยุดชั่วคราว";
+          el.appendChild(tag);
+        }
+        box.appendChild(el);
       }
     }
 
