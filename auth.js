@@ -4,6 +4,8 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   browserPopupRedirectResolver,
   indexedDBLocalPersistence,
   browserLocalPersistence,
@@ -13,6 +15,7 @@ import {
 
 const ALLOWED_EMAILS = ["bigbenmaths@gmail.com"];
 const ALLOWED_LINE_UIDS = [];
+const PENDING_KEY = "bb_pending_line";
 
 const app = initializeApp({
   apiKey: "AIzaSyBhDUiQDYOOdoNoUZ5E-hrJb8B2mvWqdcc",
@@ -52,11 +55,22 @@ function lineUidOf(user) {
   return fromProvider?.uid || "";
 }
 
+function identityDump(user) {
+  const lineUid = lineUidOf(user);
+  return {
+    email: String(user.email || ""),
+    name: String(user.displayName || ""),
+    uid: String(user.uid || ""),
+    lineUid,
+  };
+}
+
 function isAllowed(user) {
   const email = String(user.email || "").toLowerCase();
   if (email && ALLOWED_EMAILS.includes(email)) return true;
   const lineUid = lineUidOf(user);
   if (lineUid && ALLOWED_LINE_UIDS.includes(lineUid)) return true;
+  if (user.uid && ALLOWED_LINE_UIDS.includes(user.uid)) return true;
   const emails = (user.providerData || []).map((p) => String(p.email || "").toLowerCase());
   return emails.some((item) => ALLOWED_EMAILS.includes(item));
 }
@@ -111,6 +125,7 @@ function injectStyle() {
       color: #7aa8ff;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       word-break: break-all;
+      font-size: 13px;
     }
     #bb-userbar {
       display: none;
@@ -144,14 +159,15 @@ function setError(text) {
 function humanError(e) {
   const code = e && e.code;
   if (code === "auth/unauthorized-domain") return "โดเมนนี้ยังไม่ได้รับอนุญาตใน Firebase";
-  if (code === "auth/popup-blocked") return "เบราว์เซอร์บล็อกหน้าต่างล็อกอิน กดอนุญาตป๊อปอัปแล้วลองใหม่";
+  if (code === "auth/popup-blocked") return "เบราว์เซอร์บล็อกหน้าต่างล็อกอิน";
   if (code === "auth/popup-closed-by-user") return "ปิดหน้าต่างล็อกอินก่อนเสร็จ ลองใหม่อีกครั้ง";
   if (code === "auth/network-request-failed") return "เน็ตหลุด ลองใหม่อีกครั้ง";
   if (code === "auth/cancelled-popup-request") return "กำลังเปิดหน้าต่างล็อกอินอยู่แล้ว";
-  if (code === "auth/operation-not-allowed") return "ยังไม่ได้เปิด LINE Login ใน Firebase";
+  if (code === "auth/missing-or-invalid-nonce") return "เซสชันหมดอายุ กดปุ่มไลน์อีกครั้ง";
   const msg = (e && e.message) || "เข้าสู่ระบบไม่สำเร็จ";
-  if (/missing initial state/i.test(msg)) {
-    return "เซสชันหลุด ลองกดปุ่มไลน์อีกครั้ง";
+  if (/missing initial state/i.test(msg)) return "เซสชันหลุด กดปุ่มไลน์อีกครั้ง";
+  if (/invalid redirect_uri/i.test(msg)) {
+    return "ยังไม่ได้ใส่ Callback URL ใน LINE Developers";
   }
   return msg;
 }
@@ -168,10 +184,19 @@ async function startGoogleLogin() {
 async function startLineLogin() {
   setError("");
   try {
+    if (browserInfo().isLine || browserInfo().isInApp) {
+      await signInWithRedirect(auth, lineProvider);
+      return;
+    }
     await signInWithPopup(auth, lineProvider, browserPopupRedirectResolver);
   } catch (e) {
     setError(humanError(e));
   }
+}
+
+function pendingBox(info) {
+  if (!info) return "";
+  return `<div class="bb-line-id">LINE ID: ${info.lineUid || "-"}<br>UID: ${info.uid || "-"}<br>ชื่อ: ${info.name || "-"}</div>`;
 }
 
 function showGate(errorText, extraHtml = "") {
@@ -185,9 +210,17 @@ function showGate(errorText, extraHtml = "") {
     document.body.prepend(gate);
   }
 
+  let pendingHtml = extraHtml;
+  if (!pendingHtml) {
+    try {
+      const saved = sessionStorage.getItem(PENDING_KEY);
+      if (saved) pendingHtml = pendingBox(JSON.parse(saved));
+    } catch (_) {}
+  }
+
   const { isLine } = browserInfo();
   const hint = isLine
-    ? "เปิดจากไลน์อยู่ กดปุ่มไลน์ได้เลย"
+    ? "เปิดจากไลน์อยู่ กดปุ่มไลน์ได้เลย อย่าค้างที่หน้าขาวของ LINE"
     : "ในไลน์ใช้ปุ่มไลน์ ใน Chrome ใช้ Google ก็ได้";
 
   gate.innerHTML = `
@@ -199,7 +232,7 @@ function showGate(errorText, extraHtml = "") {
       <button type="button" id="bb-google-login">เข้าสู่ระบบด้วย Google</button>
       <p class="bb-gate-hint">${hint}</p>
       <div class="bb-gate-error" id="bb-auth-error">${errorText || ""}</div>
-      ${extraHtml}
+      ${pendingHtml}
     </div>
   `;
 
@@ -212,6 +245,7 @@ function showApp(user) {
   document.body.classList.add("bb-open");
   const gate = document.getElementById("bb-gate");
   if (gate) gate.remove();
+  try { sessionStorage.removeItem(PENDING_KEY); } catch (_) {}
   let bar = document.getElementById("bb-userbar");
   if (!bar) {
     bar = document.createElement("div");
@@ -224,25 +258,39 @@ function showApp(user) {
 }
 
 injectStyle();
+showGate("กำลังตรวจสอบการเข้าสู่ระบบ...");
+
+try {
+  await getRedirectResult(auth);
+} catch (e) {
+  showGate(humanError(e));
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
+    let extra = "";
+    try {
+      const saved = sessionStorage.getItem(PENDING_KEY);
+      if (saved) {
+        extra = pendingBox(JSON.parse(saved));
+        showGate("ล็อกอินไลน์สำเร็จแล้ว ส่ง LINE ID ด้านล่างมาได้เลย จะใส่ไวท์ลิสต์ให้", extra);
+        return;
+      }
+    } catch (_) {}
     showGate("");
     return;
   }
+
   if (isAllowed(user)) {
     showApp(user);
     return;
   }
 
-  const lineUid = lineUidOf(user);
+  const info = identityDump(user);
+  try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(info)); } catch (_) {}
   await signOut(auth);
-  if (lineUid) {
-    showGate(
-      "ล็อกอินไลน์สำเร็จ แต่ยังไม่ได้ใส่ LINE ID นี้ในไวท์ลิสต์ ส่งข้อความนี้กลับมาได้เลย",
-      `<div class="bb-line-id">${lineUid}</div>`
-    );
-    return;
-  }
-  showGate("บัญชีนี้ไม่อยู่ในไวท์ลิสต์");
+  showGate(
+    "ล็อกอินไลน์สำเร็จ แต่ยังไม่ได้ใส่บัญชีนี้ในไวท์ลิสต์ ส่งข้อความด้านล่างกลับมาได้เลย",
+    pendingBox(info)
+  );
 });
