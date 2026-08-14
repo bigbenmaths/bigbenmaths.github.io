@@ -69,13 +69,22 @@ function identityDump(user) {
 }
 
 function isAllowed(user) {
-  const email = String(user.email || "").toLowerCase();
-  if (email && ALLOWED_EMAILS.includes(email)) return true;
-  const lineUid = lineUidOf(user);
-  if (lineUid && ALLOWED_LINE_UIDS.includes(lineUid)) return true;
-  if (user.uid && ALLOWED_LINE_UIDS.includes(user.uid)) return true;
-  const emails = (user.providerData || []).map((p) => String(p.email || "").toLowerCase());
-  return emails.some((item) => ALLOWED_EMAILS.includes(item));
+  const emails = [
+    user.email,
+    ...(user.providerData || []).map((p) => p.email),
+  ]
+    .filter(Boolean)
+    .map((item) => String(item).toLowerCase());
+  if (emails.some((item) => ALLOWED_EMAILS.includes(item))) return true;
+
+  const ids = [
+    user.uid,
+    lineUidOf(user),
+    ...(user.providerData || []).map((p) => p.uid),
+  ]
+    .filter(Boolean)
+    .map((item) => String(item).trim());
+  return ids.some((item) => ALLOWED_LINE_UIDS.includes(item));
 }
 
 function injectStyle() {
@@ -271,15 +280,7 @@ try {
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    let extra = "";
-    try {
-      const saved = sessionStorage.getItem(PENDING_KEY);
-      if (saved) {
-        extra = pendingBox(JSON.parse(saved));
-        showGate("ล็อกอินไลน์สำเร็จแล้ว ส่ง LINE ID ด้านล่างมาได้เลย จะใส่ไวท์ลิสต์ให้", extra);
-        return;
-      }
-    } catch (_) {}
+    try { sessionStorage.removeItem(PENDING_KEY); } catch (_) {}
     showGate("");
     return;
   }
