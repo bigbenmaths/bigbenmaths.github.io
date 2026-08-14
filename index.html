@@ -84,10 +84,11 @@
       color: var(--accent-2);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
+    body.bb-locked .bb-app { display: none !important; }
   </style>
 </head>
-<body>
-  <div class="wrap">
+<body class="bb-locked">
+  <div class="wrap bb-app">
     <div class="eyebrow">bigbenmaths.github.io</div>
     <h1>หน้าแรก</h1>
     <p>จำแค่นี้แล้วกดเข้าเครื่องมือได้เลย</p>
@@ -101,5 +102,6 @@
 
     <p class="url">ลิงก์ตรง: <code>bigbenmaths.github.io/hmpro-egco-xd</code></p>
   </div>
+  <script src="/auth.js"></script>
 </body>
 </html>
