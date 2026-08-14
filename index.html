@@ -130,7 +130,7 @@
         <p>ตารางต่ำสุด–สูงสุดรายปีที่ตรวจแล้วถึง 14 ส.ค. 2569</p>
         <div class="go">เปิดตาราง →</div>
       </a>
-      <a class="card" href="/pending.html">
+      <a class="card" href="/pending.html" id="pending-card" style="display:none">
         <div class="kicker">จัดการสิทธิ์</div>
         <h2>คำขอเข้าใช้งาน</h2>
         <p>คนใหม่แค่ลองล็อกอิน แล้วมาอนุมัติที่นี่ ไม่ต้องส่ง LINE ID</p>
@@ -138,6 +138,16 @@
       </a>
     </div>
   </div>
-  <script type="module" src="/auth.js?v=20260814e"></script>
+  <script type="module" src="/auth.js?v=20260814f"></script>
+  <script type="module">
+    function showPendingCard(user) {
+      const card = document.getElementById("pending-card");
+      if (!card) return;
+      const email = String(user && user.email || "").toLowerCase();
+      card.style.display = email === "bigbenmaths@gmail.com" ? "block" : "none";
+    }
+    if (window.bbCurrentUser) showPendingCard(window.bbCurrentUser);
+    window.addEventListener("bb-authed", (e) => showPendingCard(e.detail));
+  </script>
 </body>
 </html>

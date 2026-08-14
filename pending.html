@@ -57,7 +57,7 @@
     <p>คนใหม่แค่ลองล็อกอิน แล้วชื่อจะโผล่ที่นี่ กดอนุมัติได้เลย</p>
     <div id="list" class="empty">กำลังโหลด...</div>
   </div>
-  <script type="module" src="/auth.js?v=20260814e"></script>
+  <script type="module" src="/auth.js?v=20260814f"></script>
   <script type="module">
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -69,7 +69,6 @@
       deleteDoc,
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const OWNER_UID = "saLW92gjCYfmzaScQYUnoym1ZHf2";
     const OWNER_EMAIL = "bigbenmaths@gmail.com";
 
     function db() {
@@ -77,7 +76,7 @@
     }
 
     function isOwner(user) {
-      return user.uid === OWNER_UID || String(user.email || "").toLowerCase() === OWNER_EMAIL;
+      return String(user.email || "").toLowerCase() === OWNER_EMAIL;
     }
 
     async function approve(item) {
@@ -138,7 +137,11 @@
 
     function start(user) {
       if (!isOwner(user)) {
-        document.getElementById("list").textContent = "หน้านี้ใช้ได้เฉพาะเจ้าของเว็บ";
+        document.querySelector(".wrap").innerHTML = `
+          <a href="/">← หน้าแรก</a>
+          <h1>เข้าไม่ได้</h1>
+          <p>หน้านี้ใช้ได้เฉพาะบัญชี Google ${OWNER_EMAIL}</p>
+        `;
         return;
       }
       load();
