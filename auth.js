@@ -14,7 +14,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const ALLOWED_EMAILS = ["bigbenmaths@gmail.com"];
-const ALLOWED_LINE_UIDS = [];
+const ALLOWED_LINE_UIDS = [
+  "U78834db84391fd380b5c1d3de33db1c0",
+  "saLW92gjCYfmzaScQYUnoym1ZHf2",
+];
 const PENDING_KEY = "bb_pending_line";
 
 const app = initializeApp({
