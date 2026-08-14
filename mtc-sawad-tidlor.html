@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MTC + SAWAD + TIDLOR — ต่ำสุด-สูงสุดรายปี</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #171d24;
+      --panel-2: #1d252e;
+      --line: #2a3440;
+      --text: #e8eef4;
+      --muted: #93a0ae;
+      --soft: #c5d0db;
+      --accent: #3dd6c6;
+      --warn: #f0b429;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Sarabun", "IBM Plex Sans Thai", "Noto Sans Thai", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(61, 214, 198, 0.08), transparent 50%),
+        radial-gradient(900px 400px at 100% 0%, rgba(122, 168, 255, 0.08), transparent 45%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: #7fe7dc; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 18px 80px; }
+
+    header.hero {
+      padding: 28px 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1 { margin: 8px 0 10px; font-size: 32px; line-height: 1.25; }
+    h2 { margin: 0 0 12px; font-size: 22px; }
+    p { margin: 0 0 12px; color: var(--soft); }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #141b22;
+    }
+
+    td.num, th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    tr.now td { background: rgba(61, 214, 198, 0.08); }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    body.bb-locked .bb-app { display: none !important; }
+
+    @media (max-width: 800px) {
+      h1 { font-size: 26px; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body class="bb-locked">
+  <div class="wrap bb-app">
+    <header class="hero">
+      <div class="eyebrow"><a href="/" style="color:inherit;text-decoration:none">← หน้าแรก</a></div>
+      <h1>MTC SAWAD TIDLOR<br />ราคาต่ำสุด–สูงสุดรายปี</h1>
+      <p>
+        ตารางที่ตรวจแล้วจากราคาสูงสุด–ต่ำสุดรายวัน
+        ข้อมูลถึงวันที่ 14 ส.ค. 2569
+      </p>
+      <div class="meta">
+        <span class="chip">แหล่งราคา: Yahoo Finance MTC.BK / SAWAD.BK / TIDLOR.BK</span>
+        <span class="chip">ใช้ high/low รายวันแบบราคาซื้อขายจริง</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>MTC</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">30.75</td>
+              <td>14 มี.ค. 2023</td>
+              <td class="num">46.75</td>
+              <td>25 ธ.ค. 2023</td>
+              <td>ปีนี้ทำต่ำต้นปี แล้วไต่ขึ้นไปจบปีใกล้ High</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">37.50</td>
+              <td>25 ก.ค. 2024</td>
+              <td class="num">54.00</td>
+              <td>19 ก.ย. 2024</td>
+              <td>High ของรอบ 4 ปี อยู่ปีนี้ ปิดสิ้นปี 48.00</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">31.00</td>
+              <td>30 ธ.ค. 2025</td>
+              <td class="num">49.75</td>
+              <td>26 ก.พ. 2025</td>
+              <td>ลงทั้งปี ปิดสิ้นปี 31.50 เกือบเท่าต่ำสุด</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">26.75</td>
+              <td>30 มี.ค. 2026</td>
+              <td class="num">40.00</td>
+              <td>16 ก.พ. 2026</td>
+              <td>ต่ำสุดรอบ 4 ปี ปิดวันนี้ 33.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>SAWAD</h2>
+      <p>ราคาด้านล่างเป็นราคาซื้อขายจริงในแต่ละวัน ไม่ได้ปรับย้อนหลังตามหุ้นปันผล 11:10 เมื่อ 8 พ.ค. 2024 และ 8 พ.ค. 2025</p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">40.00</td>
+              <td>13 ธ.ค. 2023</td>
+              <td class="num">61.00</td>
+              <td>10 พ.ค. 2023</td>
+              <td>High ของรอบ 4 ปี</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">27.25</td>
+              <td>15 ส.ค. 2024</td>
+              <td class="num">45.50</td>
+              <td>19 ก.ย. 2024</td>
+              <td>มีหุ้นปันผล 11:10 วันที่ 8 พ.ค. 2024</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">14.80</td>
+              <td>23 มิ.ย. 2025</td>
+              <td class="num">42.00</td>
+              <td>2 ม.ค. 2025</td>
+              <td>จุดต่ำสุดของรอบ 4 ปี มีหุ้นปันผล 11:10 วันที่ 8 พ.ค. 2025</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">19.90</td>
+              <td>11 มิ.ย. 2026</td>
+              <td class="num">30.75</td>
+              <td>19 ก.พ. 2026</td>
+              <td>ปิดวันนี้ 24.10</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>TIDLOR</h2>
+      <p>
+        ชุดราคา Yahoo ของรหัสปัจจุบันเริ่มวันที่ 16 พ.ค. 2025 หลังแปลงเป็นติดล้อ โฮลดิ้งส์
+        จึงยังไม่มี high/low ปี 2023–2024 ที่เทียบกันได้จากชุดเดียวกัน
+      </p>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">—</td>
+              <td>—</td>
+              <td class="num">—</td>
+              <td>—</td>
+              <td>ชุดราคาปัจจุบันไม่ต่อเนื่องย้อนไปปีนี้</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">—</td>
+              <td>—</td>
+              <td class="num">—</td>
+              <td>—</td>
+              <td>ชุดราคาปัจจุบันไม่ต่อเนื่องย้อนไปปีนี้</td>
+            </tr>
+            <tr>
+              <td>2025 จาก 16 พ.ค.</td>
+              <td class="num">13.40</td>
+              <td>23 มิ.ย. 2025</td>
+              <td class="num">22.50</td>
+              <td>27 ต.ค. 2025</td>
+              <td>นับเฉพาะหลังเทรดในโครงสร้างโฮลดิ้งส์</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">13.80</td>
+              <td>30 มี.ค. 2026</td>
+              <td class="num">21.00</td>
+              <td>25 ก.พ. 2026</td>
+              <td>ปิดวันนี้ 18.80</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        ตัวเลขนี้เป็น high/low รายวัน จึงอาจต่างจาก tick ระหว่างวันของโบรกเล็กน้อย
+        SAWAD แสดงราคาซื้อขายจริง ไม่ได้บดบังผลของหุ้นปันผล 11:10
+      </p>
+    </section>
+  </div>
+  <script type="module" src="/auth.js"></script>
+</body>
+</html>
