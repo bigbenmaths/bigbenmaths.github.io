@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PTTGC + IRPC — ต่ำสุด-สูงสุดรายปี</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --panel: #171d24;
+      --panel-2: #1d252e;
+      --line: #2a3440;
+      --text: #e8eef4;
+      --muted: #93a0ae;
+      --soft: #c5d0db;
+      --accent: #3dd6c6;
+      --warn: #f0b429;
+      --danger: #ff6b6b;
+      --good: #5bd38a;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Sarabun", "IBM Plex Sans Thai", "Noto Sans Thai", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(61, 214, 198, 0.08), transparent 50%),
+        radial-gradient(900px 400px at 100% 0%, rgba(122, 168, 255, 0.08), transparent 45%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    a { color: var(--accent); }
+    a:hover { color: #7fe7dc; }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 18px 80px; }
+
+    header.hero {
+      padding: 28px 24px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1 { margin: 8px 0 10px; font-size: 32px; line-height: 1.25; }
+    h2 { margin: 0 0 12px; font-size: 22px; }
+    p { margin: 0 0 12px; color: var(--soft); }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      margin-top: 22px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      min-width: 720px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #141b22;
+    }
+
+    td.num, th.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    tr.now td { background: rgba(61, 214, 198, 0.08); }
+
+    .ok { color: var(--good); font-weight: 700; }
+    .no { color: var(--danger); font-weight: 700; }
+    .mid { color: var(--warn); font-weight: 700; }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    body.bb-locked .bb-app { display: none !important; }
+
+    @media (max-width: 800px) {
+      h1 { font-size: 26px; }
+      table { font-size: 13px; }
+    }
+  </style>
+</head>
+<body class="bb-locked">
+  <div class="wrap bb-app">
+    <header class="hero">
+      <div class="eyebrow"><a href="/" style="color:inherit;text-decoration:none">← หน้าแรก</a></div>
+      <h1>PTTGC และ IRPC<br />ราคาต่ำสุด–สูงสุดรายปี</h1>
+      <p>
+        ตารางที่ตรวจแล้วจากราคาสูงสุด–ต่ำสุดรายวัน ไม่ใช่ตัวเลขโดยประมาณ
+        ข้อมูลถึงวันที่ 14 ส.ค. 2569
+      </p>
+      <div class="meta">
+        <span class="chip">แหล่งราคา: Yahoo Finance PTTGC.BK / IRPC.BK</span>
+        <span class="chip">ใช้ high/low รายวัน ไม่ใช้แค่ราคาปิด</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>PTTGC</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">31.75</td>
+              <td>4 ต.ค. 2023</td>
+              <td class="num">52.50</td>
+              <td>14 ก.พ. 2023</td>
+              <td>High อยู่เดือนกุมภาพันธ์ ไม่ใช่ 49.25 ในมกราคม</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">22.20</td>
+              <td>23 ธ.ค. 2024</td>
+              <td class="num">41.25</td>
+              <td>10 เม.ย. 2024</td>
+              <td>ปิดสิ้นปี 24.40 แต่ต่ำสุดจริงคือ 22.20</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">14.20</td>
+              <td>8 เม.ย. 2025</td>
+              <td class="num">28.75</td>
+              <td>11 ก.ย. 2025</td>
+              <td>จุดต่ำสุดตรงกับตารางเดิม</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">20.80</td>
+              <td>6 ม.ค. 2026</td>
+              <td class="num">41.75</td>
+              <td>23 ก.ค. 2026</td>
+              <td>High ปีนี้ตรงกับตารางเดิม ปิดวันนี้ 39.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>IRPC</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th class="num">ต่ำสุด</th>
+              <th>วันที่</th>
+              <th class="num">สูงสุด</th>
+              <th>วันที่</th>
+              <th>หมายเหตุ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2023</td>
+              <td class="num">1.89</td>
+              <td>27 ต.ค. 2023</td>
+              <td class="num">3.20</td>
+              <td>14 ก.พ. 2023</td>
+              <td>อยู่ในกรอบตารางเดิม</td>
+            </tr>
+            <tr>
+              <td>2024</td>
+              <td class="num">1.21</td>
+              <td>23 ธ.ค. 2024</td>
+              <td class="num">2.08</td>
+              <td>3 ม.ค. 2024</td>
+              <td>ไม่เคยขึ้นไป 2.50 ปีนั้น High อยู่ต้นปีแล้วลงทั้งปี</td>
+            </tr>
+            <tr>
+              <td>2025</td>
+              <td class="num">0.70</td>
+              <td>23 มิ.ย. 2025</td>
+              <td class="num">1.34</td>
+              <td>10 ก.ย. 2025</td>
+              <td>ต่ำสุดตรงกับตารางเดิม แต่ High ไม่ถึง 1.80–2.00</td>
+            </tr>
+            <tr class="now">
+              <td>2026 ถึง 14 ส.ค.</td>
+              <td class="num">1.00</td>
+              <td>5 ม.ค. 2026</td>
+              <td class="num">2.56</td>
+              <td>13 ส.ค. 2026</td>
+              <td>วันนี้ high 2.54 ปิด 2.46</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>เทียบกับตารางเดิม</h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>หุ้น / ปี</th>
+              <th>ช่องที่ตารางเดิมใส่</th>
+              <th>ผลตรวจ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PTTGC 2023 สูงสุด</td>
+              <td>~49.25 ม.ค. 2023</td>
+              <td class="no">ผิด จริงคือ 52.50 ใน ก.พ.</td>
+            </tr>
+            <tr>
+              <td>PTTGC 2023 ต่ำสุด</td>
+              <td>~34.50 ก.ย.–ต.ค.</td>
+              <td class="mid">เดือนถูก ทิศถูก แต่ต่ำสุดจริง 31.75</td>
+            </tr>
+            <tr>
+              <td>PTTGC 2024</td>
+              <td>24–25 / 38–38.50</td>
+              <td class="mid">ทิศถูก แต่ต่ำสุดจริง 22.20 สูงสุดจริง 41.25</td>
+            </tr>
+            <tr>
+              <td>PTTGC 2025 ต่ำสุด</td>
+              <td>14.20–14.25 วันที่ 8 เม.ย.</td>
+              <td class="ok">ถูก 14.20 วันที่ 8 เม.ย.</td>
+            </tr>
+            <tr>
+              <td>PTTGC 2026 สูงสุด</td>
+              <td>41.75 วันที่ 23 ก.ค.</td>
+              <td class="ok">ถูก</td>
+            </tr>
+            <tr>
+              <td>IRPC 2024 สูงสุด</td>
+              <td>~2.50 กลางปี</td>
+              <td class="no">ผิด จริงคือ 2.08 ต้นปี</td>
+            </tr>
+            <tr>
+              <td>IRPC 2025 ต่ำสุด</td>
+              <td>~0.70 วันที่ 23 มิ.ย.</td>
+              <td class="ok">ถูก</td>
+            </tr>
+            <tr>
+              <td>IRPC 2025 สูงสุด</td>
+              <td>~1.80–2.00 ปลายปี</td>
+              <td class="no">ผิดมาก จริงคือ 1.34 ใน ก.ย.</td>
+            </tr>
+            <tr>
+              <td>IRPC 2026</td>
+              <td>0.92–1.00 / 2.44–2.54</td>
+              <td class="ok">ถูกทิศ ต่ำสุด 1.00 สูงสุด 2.56</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">
+        ตัวเลขนี้เป็น high/low รายวัน จึงอาจต่างจาก tick ระหว่างวันของโบรกเล็กน้อย
+        แต่กรอบปีและเดือนถูกต้องกว่าตารางโดยประมาณเดิม
+      </p>
+    </section>
+  </div>
+  <script type="module" src="/auth.js"></script>
+</body>
+</html>
