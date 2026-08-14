@@ -1,11 +1,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getAuth,
+  initializeAuth,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  setPersistence,
+  browserPopupRedirectResolver,
+  indexedDBLocalPersistence,
   browserLocalPersistence,
   onAuthStateChanged,
   signOut,
@@ -21,7 +20,11 @@ const app = initializeApp({
   messagingSenderId: "502747772524",
 });
 
-const auth = getAuth(app);
+const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+  popupRedirectResolver: browserPopupRedirectResolver,
+});
+
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: "select_account" });
 
@@ -33,8 +36,7 @@ function browserInfo() {
   const isFB = /FBAN|FBAV|FB_IAB/i.test(ua);
   const isIG = /Instagram/i.test(ua);
   const isInApp = isLine || isFB || isIG || /; wv\)/i.test(ua);
-  const isMobile = isAndroid || isIOS || /Mobile/i.test(ua);
-  return { isAndroid, isIOS, isLine, isInApp, isMobile };
+  return { isAndroid, isIOS, isLine, isInApp };
 }
 
 function openInChrome() {
@@ -123,39 +125,31 @@ function setError(text) {
   if (err) err.textContent = text || "";
 }
 
+function humanError(e) {
+  const code = e && e.code;
+  if (code === "auth/unauthorized-domain") return "โดเมนนี้ยังไม่ได้รับอนุญาตใน Firebase";
+  if (code === "auth/popup-blocked") return "Chrome บล็อกหน้าต่างล็อกอิน กดอนุญาตป๊อปอัปแล้วลองใหม่";
+  if (code === "auth/popup-closed-by-user") return "ปิดหน้าต่างล็อกอินก่อนเสร็จ ลองใหม่อีกครั้ง";
+  if (code === "auth/network-request-failed") return "เน็ตหลุด ลองใหม่อีกครั้ง";
+  if (code === "auth/cancelled-popup-request") return "กำลังเปิดหน้าต่างล็อกอินอยู่แล้ว";
+  const msg = (e && e.message) || "เข้าสู่ระบบไม่สำเร็จ";
+  if (/missing initial state/i.test(msg)) {
+    return "อย่าล็อกอินในไลน์ ให้เปิดเว็บด้วยแอป Chrome แล้วกดใหม่";
+  }
+  return msg;
+}
+
 async function startLogin() {
   setError("");
-  const { isMobile, isInApp } = browserInfo();
-  if (isInApp) {
+  if (browserInfo().isInApp) {
     openInChrome();
     return;
   }
   try {
-    if (isMobile) {
-      await signInWithRedirect(auth, provider);
-      return;
-    }
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(auth, provider, browserPopupRedirectResolver);
   } catch (e) {
-    if (e.code === "auth/popup-blocked" || e.code === "auth/cancelled-popup-request") {
-      try {
-        await signInWithRedirect(auth, provider);
-        return;
-      } catch (e2) {
-        setError(humanError(e2));
-        return;
-      }
-    }
     setError(humanError(e));
   }
-}
-
-function humanError(e) {
-  const code = e && e.code;
-  if (code === "auth/unauthorized-domain") return "โดเมนนี้ยังไม่ได้รับอนุญาตใน Firebase";
-  if (code === "auth/popup-blocked") return "เบราว์เซอร์บล็อกหน้าต่างล็อกอิน";
-  if (code === "auth/network-request-failed") return "เน็ตหลุด ลองใหม่อีกครั้ง";
-  return (e && e.message) || "เข้าสู่ระบบไม่สำเร็จ";
 }
 
 function showGate(errorText) {
@@ -171,9 +165,10 @@ function showGate(errorText) {
 
   const { isInApp, isLine } = browserInfo();
   const extra = isInApp
-    ? `<button type="button" id="bb-open-chrome">เปิดใน Chrome แล้วล็อกอิน</button>
-       <p class="bb-gate-hint">${isLine ? "เบราว์เซอร์ใน LINE ล็อกอิน Google ไม่ได้" : "เบราว์เซอร์ในแอป"} ต้องเปิดด้วย Chrome</p>`
-    : `<button type="button" id="bb-google-login">เข้าสู่ระบบด้วย Google</button>`;
+    ? `<button type="button" id="bb-open-chrome">เปิดในแอป Chrome</button>
+       <p class="bb-gate-hint">${isLine ? "เปิดจากไลน์อยู่" : "เปิดจากในแอปอยู่"} ล็อกอิน Google ไม่ได้ ต้องเปิดด้วยแอป Chrome</p>`
+    : `<button type="button" id="bb-google-login">เข้าสู่ระบบด้วย Google</button>
+       <p class="bb-gate-hint">ถ้าเปิดลิงก์มาจากไลน์ ให้ปิดแท็บนี้ แล้วเปิดแอป Chrome พิมพ์ bigbenmaths.github.io เอง</p>`;
 
   gate.innerHTML = `
     <div class="bb-gate-card">
@@ -207,14 +202,6 @@ function showApp(email) {
 }
 
 injectStyle();
-
-await setPersistence(auth, browserLocalPersistence);
-
-try {
-  await getRedirectResult(auth);
-} catch (e) {
-  showGate(humanError(e));
-}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
